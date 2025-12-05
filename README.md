@@ -22,7 +22,7 @@ Nagrywanie, transkrypcja (Whisper) i podsumowanie (Ollama) audio.
 1. **Python 3.9+**
 
 2. **FFmpeg**
-   - Pobierz: https://www.gyan.dev/ffmpeg/builds/
+   - Pobierz: https://ffmpeg.org/download.html
    - Rozpakuj do `C:\ffmpeg`
    - Dodaj `C:\ffmpeg\bin` do PATH:
      - Szukaj "Zmienne srodowiskowe"
