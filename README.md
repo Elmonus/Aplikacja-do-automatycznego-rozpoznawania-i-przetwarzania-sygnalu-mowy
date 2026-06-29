@@ -1,112 +1,165 @@
-# Audio Transcriber — wersja desktopowa (Electron + Python)
+# Wychwytywacz Instalacja  
 
-Desktopowa aplikacja do **nagrywania, transkrypcji i podsumowania audio** — działa
-w 100% lokalnie i offline, bez przeglądarki i bez chmury.
+Jak pobrać i skonfigurować wszystko, czego potrzebuje aplikacja.
 
-To wersja desktopowa Twojej webówki Flask. Architektura zachowuje **Pythona jako bazę**:
-Electron uruchamia serwer Flask jako proces w tle (loopback `127.0.0.1`) i wyświetla
-interfejs w natywnym oknie aplikacji.
 
-```
-┌──────────────────────────────────────────────┐
-│  Electron (okno aplikacji)                     │
-│   └── ładuje UI z http://127.0.0.1:5123        │
-│                                                │
-│  child_process → Python / Flask (app.py)       │
-│        ├── /transcribe   faster-whisper        │
-│        ├── /summarize    Ollama (localhost)    │
-│        ├── /convert      pydub + FFmpeg         │
-│        └── /health       status                │
-└──────────────────────────────────────────────┘
-```
+> Katalog projektu w przykładach to `wychwytywacz`.
 
-## Wymagania
+---
 
-| Składnik | Wersja | Uwagi |
-|----------|--------|-------|
-| Python | 3.9+ (zalecane 3.10–3.12) | backend |
-| Node.js + npm | 18+ | Electron |
-| FFmpeg | dowolna | konwersja audio (pydub) |
-| Ollama | opcjonalnie | tylko do podsumowań |
+## Co trzeba zainstalować 
 
-Instalacja FFmpeg i Ollama:
+| Składnik | Min. wersja |
+|----------|-------------|
+| Node.js + npm  | 18+ |
+| Python 3 | 3.9+ |
+| FFmpeg | dowolna aktualna |
+| Ollama | dowolna aktualna |
+
+
+---
+
+## 1. macOS
+
+### 1.1. Homebrew 
 ```bash
-# macOS
-brew install ffmpeg ollama
-
-# Debian/Ubuntu
-sudo apt install ffmpeg
-curl -fsSL https://ollama.com/install.sh | sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-## Instalacja
-
+### 1.2. Zależności systemowe
 ```bash
-# macOS / Linux
-chmod +x setup.sh
-./setup.sh
-
-# Windows
-setup.bat
+brew install node python@3.12 ffmpeg ollama
 ```
 
-Skrypt tworzy `backend/venv`, instaluje zależności Pythona i `npm install`.
-
-## Uruchomienie
-
+### 1.3. Ollama — serwer + model
 ```bash
-# (opcjonalnie) serwer Ollama do podsumowań — osobny terminal
-ollama serve
-ollama pull mistral:7b      # lub: ollama pull llama3.2:3b
+brew services start ollama        # serwer w tle (albo: ollama serve w osobnym oknie)
+ollama pull mistral:7b            # lub lżejszy: ollama pull llama3.2:3b
+```
 
-# aplikacja
+### 1.4. Projekt: środowisko Pythona + zależności Electrona
+```bash
+cd wychwytywacz
+
+python3 -m venv backend/venv
+source backend/venv/bin/activate
+pip install --upgrade pip
+pip install -r backend/requirements.txt
+deactivate
+
+npm install
+```
+
+### 1.5. Uruchom 
+```bash
 npm start
 ```
 
-Electron sam wystartuje backend i otworzy okno. Przy pierwszej transkrypcji
-pobierze się model Whisper (`base`, ~74 MB).
+---
 
-## Budowanie instalatorów
+## 2. Linux
 
+### 2.1. Zależności systemowe
+
+**Debian / Ubuntu:**
 ```bash
-npm run build:mac     # DMG + ZIP
-npm run build:win     # NSIS installer + portable
-npm run build:linux   # AppImage + DEB
+# Node.js LTS (repozytorium NodeSource)
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Python + venv + pip
+sudo apt-get install -y python3 python3-venv python3-pip
+
+# FFmpeg
+sudo apt-get install -y ffmpeg
+
+# (do budowania AppImage) biblioteka FUSE
+sudo apt-get install -y libfuse2
 ```
 
-Wynik w katalogu `dist/`. Backend Pythona trafia do zasobów aplikacji
-(`extraResources`), ale **interpreter Pythona i FFmpeg muszą być w systemie** —
-aplikacja korzysta z `backend/venv` jeśli istnieje, w przeciwnym razie z systemowego `python3`.
+**Fedora:**
+```bash
+sudo dnf install -y nodejs python3 python3-pip
+sudo dnf install -y ffmpeg          # wymaga repo RPM Fusion
+```
 
-> Pełne samowystarczalne paczki (bez wymaganego Pythona u użytkownika) wymagałyby
-> dołączenia interpretera np. przez PyInstaller — to osobny krok, mogę go dorobić.
+**Arch:**
+```bash
+sudo pacman -S --needed nodejs npm python python-pip ffmpeg
+```
 
-## Konfiguracja
+### 2.2. Ollama — serwer + model
+```bash
+curl -fsSL https://ollama.com/install.sh | sh   # tworzy usługę systemd i ją uruchamia
+ollama pull mistral:7b                           # lub: ollama pull llama3.2:3b
+```
 
-Zmienne środowiskowe czytane przez `backend/app.py`:
+### 2.3. Projekt: środowisko Pythona + zależności Electrona
+```bash
+cd wychwytywacz
 
-| Zmienna | Domyślnie | Opis |
-|---------|-----------|------|
-| `AUDIO_APP_PORT` | `5123` | port backendu (ustawia Electron) |
-| `WHISPER_MODEL` | `base` | `tiny`/`base`/`small`/`medium`/`large-v3` |
-| `WHISPER_DEVICE` | `cpu` | `cpu` lub `cuda` |
-| `WHISPER_COMPUTE` | `int8` | `int8`/`float16`/`float32` |
-| `OLLAMA_MODEL` | `mistral:7b` | model do podsumowań |
-| `OLLAMA_URL` | `http://localhost:11434` | adres Ollama |
+python3 -m venv backend/venv
+source backend/venv/bin/activate
+pip install --upgrade pip
+pip install -r backend/requirements.txt
+deactivate
 
-## Funkcje
+npm install
+```
 
-- Nagrywanie z mikrofonu (rec / pauza / stop) + wczytywanie plików (drag & drop)
-- Transkrypcja Whisper z autodetekcją języka i podziałem na segmenty z czasami
-- Kopiowanie transkrypcji (czysty tekst lub z timestampami)
-- Podsumowanie przez Ollama: krótkie / szczegółowe / punkty / zadania
-- Konwersja i eksport: MP3 / WAV / FLAC / OGG
+### 2.4. Uruchom 
+```bash
+npm start
+```
 
-## Rozwiązywanie problemów
+---
 
-- **Okno utknęło na ekranie ładowania** — backend nie wstał. Uruchom `setup.sh`
-  ponownie i sprawdź, czy `python3` i FFmpeg są w PATH.
-- **Brak dźwięku z mikrofonu** — na macOS nadaj aplikacji uprawnienia w
-  *Ustawienia systemowe → Prywatność → Mikrofon*.
-- **Podsumowanie zwraca błąd połączenia** — uruchom `ollama serve` i pobierz model.
-- **Timeout podsumowania** — użyj mniejszego modelu (`llama3.2:3b`).
+## 3. Windows 
+
+
+### 3.1. Zależności systemowe
+
+- Node.js — https://nodejs.org (wersja LTS)
+- Python — https://www.python.org/downloads/ 
+- FFmpeg — https://www.gyan.dev/ffmpeg/builds/ 
+- Ollama — https://ollama.com/download/windows
+
+### 3.2. Ollama — model
+Ollama startuje jako usługa po instalacji. Pobierz model:
+```powershell
+ollama pull mistral:7b
+```
+
+### 3.3. Projekt: środowisko Pythona + zależności Electrona
+```powershell
+cd wychwytywacz
+
+python -m venv backend\venv
+backend\venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r backend\requirements.txt
+deactivate
+
+npm install
+
+### 3.4. Uruchom 
+```powershell
+npm start
+```
+
+---
+
+## 4. Weryfikacja (na każdym systemie)
+```bash
+node -v
+npm -v
+python3 --version      # Windows: python --version
+ffmpeg -version
+ffprobe -version
+ollama --version
+```
+Serwer Ollama powinien odpowiadać pod `http://localhost:11434`.
+Model Whisper (`base`, ~74 MB) pobierze się sam przy pierwszej transkrypcji (raz, potrzebny internet).
+
+---
+
