@@ -4,8 +4,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build:backend": "bash backend/build_backend.sh",
-    "dist:mac": "npm run build:backend && electron-builder --mac"
+    "build": "electron-builder"
   },
   "devDependencies": {
     "electron": "^31.0.0",
@@ -15,8 +14,8 @@
     "tree-kill": "^1.2.2"
   },
   "build": {
-    "appId": "audiotranscriber",
-    "productName": "Audio Transcriber",
+    "appId": "com.wychwytywacz.app",
+    "productName": "Wychwytywacz",
     "files": [
       "main.js",
       "preload.js",
@@ -25,7 +24,7 @@
     "extraResources": [
       { "from": "backend/dist/audio-backend", "to": "backend/audio-backend", "filter": ["**/*"] },
       { "from": "frontend", "to": "frontend", "filter": ["**/*"] },
-      { "from": "vendor/ffmpeg", "to": "bin", "filter": ["ffmpeg", "ffprobe"] }
+      { "from": "vendor/ffmpeg", "to": "bin", "filter": ["ffmpeg", "ffprobe", "ffmpeg.exe", "ffprobe.exe"] }
     ],
     "mac": {
       "target": ["dmg"],
@@ -35,11 +34,10 @@
       }
     },
     "win": {
-      "target": ["nsis", "portable"]
+      "target": ["nsis"]
     },
     "linux": {
-      "target": ["AppImage", "deb"],
-      "category": "AudioVideo"
+      "target": ["AppImage"]
     }
   }
 }
