@@ -1,4 +1,3 @@
-
 import os
 import io
 import sys
@@ -14,9 +13,8 @@ from flask_cors import CORS
 from pydub import AudioSegment
 from werkzeug.utils import secure_filename
 
-# ============================================================
-# KONFIGURACJA
-# ============================================================
+
+# Konfig
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -80,9 +78,8 @@ logger.info("FRONTEND_DIR=%s", FRONTEND_DIR)
 logger.info("UPLOAD_FOLDER=%s", UPLOAD_FOLDER)
 logger.info("FFMPEG=%s FFPROBE=%s", _ffmpeg or "(PATH)", _ffprobe or "(PATH)")
 
-# ============================================================
-# WHISPER - lazy loading (ladowany przy pierwszym uzyciu)
-# ============================================================
+
+# WHISPER - (ladowany przy pierwszym uzyciu)
 _whisper_model = None
 
 
@@ -102,9 +99,8 @@ def get_whisper_model():
     return _whisper_model
 
 
-# ============================================================
-# POMOCNICZE
-# ============================================================
+
+# Pomoc
 def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -117,9 +113,10 @@ def format_timestamp(seconds: float) -> str:
     return f"{m:02d}:{s:02d}"
 
 
-def build_summary_prompt(text: str, mode: str) -> str:
-    """Wysyla prompt dla Ollama zaleznie od wybranego trybu."""
-    prompts = {
+def build_summary_prompt(text: str, mode: str, language: str = "pl") -> str:
+    """Wysyla prompt dla Ollama zaleznie od wybranego trybu i jezyka.
+    Po polsku gdy language == 'pl', w przeciwnym razie po angielsku."""
+    prompts_pl = {
         "short": (
             "Podsumuj ponizsza transkrypcje w 2-3 zdaniach po polsku. "
             "Skup sie na najwazniejszej tresci.\n\nTRANSKRYPCJA:\n"
@@ -137,13 +134,33 @@ def build_summary_prompt(text: str, mode: str) -> str:
             "Wypisz je jako liste z mysli wiodacych (-). Jesli zadan brak, napisz 'Brak konkretnych zadan'.\n\nTRANSKRYPCJA:\n"
         ),
     }
-    prefix = prompts.get(mode, prompts["short"])
-    return prefix + text + "\n\nPODSUMOWANIE:"
+    prompts_en = {
+        "short": (
+            "Summarize the following transcript in 2-3 sentences. "
+            "Focus on the most important content.\n\nTRANSCRIPT:\n"
+        ),
+        "detailed": (
+            "Create a detailed summary of the following transcript. "
+            "Include key points, context and conclusions. Use paragraphs.\n\nTRANSCRIPT:\n"
+        ),
+        "bullets": (
+            "List the most important points from the following transcript as a list. "
+            "Start each point with a dash (-). No introduction.\n\nTRANSCRIPT:\n"
+        ),
+        "tasks": (
+            "From the following transcript, extract specific action items. "
+            "List them with dashes (-). If there are none, write 'No specific action items'.\n\nTRANSCRIPT:\n"
+        ),
+    }
+    is_polish = (language or "pl").lower().startswith("pl")
+    table = prompts_pl if is_polish else prompts_en
+    prefix = table.get(mode, table["short"])
+    suffix = "\n\nPODSUMOWANIE:" if is_polish else "\n\nSUMMARY:"
+    return prefix + text + suffix
 
 
-# ============================================================
-# ENDPOINTY - interfejs
-# ============================================================
+
+# interfejs
 @app.route("/")
 def index():
     return send_from_directory(FRONTEND_DIR, "index.html")
@@ -165,9 +182,8 @@ def health():
     })
 
 
-# ============================================================
-# ENDPOINT - transkrypcja
-# ============================================================
+
+# transkrypcja
 @app.route("/transcribe", methods=["POST"])
 def transcribe():
     if "audio" not in request.files:
@@ -186,7 +202,7 @@ def transcribe():
     try:
         file.save(tmp_in)
 
-        # Konwersja do WAV 16 kHz mono - najbezpieczniejsze wejscie dla Whisper
+        # Konwersja do WAV 16 kHz mono 
         tmp_wav = os.path.join(UPLOAD_FOLDER, f"{uuid.uuid4().hex}.wav")
         audio = AudioSegment.from_file(tmp_in)
         audio = audio.set_frame_rate(16000).set_channels(1)
@@ -233,9 +249,8 @@ def transcribe():
                     pass
 
 
-# ============================================================
-# ENDPOINT - podsumowanie (Ollama)
-# ============================================================
+
+# podsumowanie (Ollama)
 @app.route("/summarize", methods=["POST"])
 def summarize():
     data = request.get_json(silent=True) or {}
@@ -244,12 +259,13 @@ def summarize():
     mode = data.get("type") or data.get("mode", "short")
     if mode == "action":          # alias z interfejsu -> klucz promptu
         mode = "tasks"
+    language = data.get("language", "pl")   # 'pl' -> po polsku, inne -> po angielsku
     model = data.get("model", OLLAMA_MODEL)
 
     if not text:
         return jsonify({"error": "Brak tekstu do podsumowania"}), 400
 
-    prompt = build_summary_prompt(text, mode)
+    prompt = build_summary_prompt(text, mode, language)
     try:
         resp = requests.post(
             f"{OLLAMA_URL}/api/generate",
@@ -296,9 +312,7 @@ def ollama_models():
         return jsonify({"available": False, "models": []})
 
 
-# ============================================================
-# ENDPOINT - konwersja formatu
-# ============================================================
+#konwersja
 @app.route("/convert", methods=["POST"])
 def convert():
     if "audio" not in request.files:
@@ -344,11 +358,8 @@ def convert():
                 pass
 
 
-# ============================================================
-# ENDPOINT - konwersja do odtwarzania (WebM/OGG -> MP3 inline)
-# Uzywany przez frontend, bo niektore przegladarki/silniki maja
-# problem z odtwarzaniem surowego WebM z MediaRecordera.
-# ============================================================
+
+# ENDPOINT - konwersja do odtwarzania (WebM/OGG -> MP3)
 @app.route("/convert-for-playback", methods=["POST"])
 def convert_for_playback():
     if "audio" not in request.files:
@@ -362,7 +373,7 @@ def convert_for_playback():
         buf = io.BytesIO()
         audio.export(buf, format="mp3", bitrate="192k")
         buf.seek(0)
-        # inline (nie jako zalacznik) - blob trafia prosto do <audio>
+        # inline (nie jako zalacznik), blob trafia prosto do <audio>
         return send_file(buf, mimetype="audio/mpeg", as_attachment=False,
                          download_name="playback.mp3")
     except Exception as exc:  # noqa: BLE001
@@ -376,9 +387,7 @@ def convert_for_playback():
                 pass
 
 
-# ============================================================
-# START
-# ============================================================
+
 if __name__ == "__main__":
     logger.info("Backend startuje na http://%s:%s", HOST, PORT)
     logger.info("Frontend: %s", FRONTEND_DIR)
