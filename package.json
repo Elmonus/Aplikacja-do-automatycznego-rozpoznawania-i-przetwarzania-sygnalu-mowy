@@ -1,0 +1,45 @@
+{
+  "name": "wychwytywacz",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:backend": "bash backend/build_backend.sh",
+    "dist:mac": "npm run build:backend && electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "tree-kill": "^1.2.2"
+  },
+  "build": {
+    "appId": "audiotranscriber",
+    "productName": "Audio Transcriber",
+    "files": [
+      "main.js",
+      "preload.js",
+      "frontend/loading.html"
+    ],
+    "extraResources": [
+      { "from": "backend/dist/audio-backend", "to": "backend/audio-backend", "filter": ["**/*"] },
+      { "from": "frontend", "to": "frontend", "filter": ["**/*"] },
+      { "from": "vendor/ffmpeg", "to": "bin", "filter": ["ffmpeg", "ffprobe"] }
+    ],
+    "mac": {
+      "target": ["dmg"],
+      "identity": null,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Aplikacja potrzebuje mikrofonu do nagrywania audio do transkrypcji."
+      }
+    },
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "AudioVideo"
+    }
+  }
+}

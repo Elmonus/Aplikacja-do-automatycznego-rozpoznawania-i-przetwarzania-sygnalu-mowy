@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wychwytywacz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-card: #1c1c1c;
+            --bg-hover: #262626;
+            --accent: #3730a3;
+            --accent-hover: #4338ca;
+            --accent-light: #4f46e5;
+            --accent-glow: rgba(55, 48, 163, 0.4);
+            --text-primary: #f5f5f5;
+            --text-secondary: #a3a3a3;
+            --text-muted: #737373;
+            --border: #2a2a2a;
+            --success: #16a34a;
+            --error: #dc2626;
+            --warning: #d97706;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #333;
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-lg {
+            padding: 14px 28px;
+            font-size: 0.95rem;
+        }
+
+        .recording-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .record-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            padding: 0;
+        }
+
+
+        .timer {
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 2rem;
+            font-weight: 600;
+            text-align: center;
+            color: var(--accent-light);
+            margin: 20px 0;
+        }
+
+        .audio-player-wrapper {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .audio-player-wrapper audio {
+            width: 100%;
+            height: 40px;
+        }
+
+        .file-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg-secondary);
+        }
+
+        .file-drop-zone:hover,
+        .file-drop-zone.dragover {
+            border-color: var(--accent);
+        }
+
+        .file-drop-zone p {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .file-drop-zone .formats {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .transcription-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 120px;
+            max-height: 350px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .transcription-box:empty::before {
+            content: "Transkrypcja pojawi sie tutaj...";
+            color: var(--text-muted);
+        }
+
+        .transcription-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .transcription-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .segment {
+            display: flex;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .segment:last-child {
+            border-bottom: none;
+        }
+
+        .segment-time {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--accent-light);
+            min-width: 50px;
+        }
+
+        .segment-text {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .status {
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin: 12px 0;
+            font-size: 0.9rem;
+        }
+
+        .status.info {
+            background: rgba(55, 48, 163, 0.15);
+            border: 1px solid var(--accent);
+            color: var(--accent-light);
+        }
+
+        .status.success {
+            background: rgba(22, 163, 74, 0.15);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .status.error {
+            background: rgba(220, 38, 38, 0.15);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .status.warning {
+            background: rgba(217, 119, 6, 0.15);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .debug-info {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Wychwytywacz</h1>
+            <p>Nagrywaj, konwertuj i transkrybuj audio lokalnie</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Zrodlo audio -->
+        <div class="card">
+            <h2 class="card-title">Zrodlo audio</h2>
+
+            <div class="tabs" id="sourceTabs">
+                <button class="tab-btn active" data-tab="record">Nagrywanie</button>
+                <button class="tab-btn" data-tab="upload">Wczytaj plik</button>
+            </div>
+
+            <!-- Nagrywanie -->
+            <div id="tab-record" class="tab-content active">
+                <div class="timer" id="timer">00:00</div>
+                
+                <div class="recording-controls">
+                    <button class="btn btn-primary record-btn" id="recordBtn" title="Nagraj">&#9679;</button>
+                    <button class="btn btn-secondary" id="pauseBtn" disabled>&#10074;&#10074;</button>
+                    <button class="btn btn-danger" id="stopBtn" disabled>&#9632;</button>
+                    <button class="btn btn-secondary" id="clearBtn" title="Wyczysc">&#10006;</button>
+                </div>
+
+                <div id="recordStatus"></div>
+            </div>
+
+            <!-- Upload -->
+            <div id="tab-upload" class="tab-content">
+                <div class="file-drop-zone" id="dropZone">
+                    <p>Przeciagnij plik lub kliknij</p>
+                    <span class="formats">MP3, WAV, FLAC, OGG, WebM, M4A</span>
+                </div>
+                <input type="file" id="fileInput" accept="audio/*">
+                <div id="uploadStatus"></div>
+            </div>
+
+            <!-- Player -->
+            <div class="audio-player-wrapper" id="playerWrapper" style="display: none;">
+                <audio id="audioPlayer" controls></audio>
+                <div id="playerStatus" style="margin-top: 8px; font-size: 0.8rem; color: var(--text-muted);"></div>
+            </div>
+
+            <!-- Debug -->
+            <div class="debug-info" id="debugInfo">
+                Stan: brak audio | Blob: - | URL: -
+            </div>
+        </div>
+
+        <!-- Transkrypcja -->
+        <div class="card">
+            <h2 class="card-title">Transkrypcja (Whisper)</h2>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Jezyk</label>
+                    <select id="languageSelect">
+                        <option value="pl">Polski</option>
+                        <option value="en">Angielski</option>
+                        <option value="de">Niemiecki</option>
+                        <option value="auto">Auto</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" id="transcribeBtn" style="width: 100%; margin-top: 10px;">
+                Transkrybuj
+            </button>
+
+            <div id="transcribeStatus"></div>
+
+            <div id="transcriptionResult" style="display: none; margin-top: 20px;">
+                <div class="transcription-header">
+                    <span style="font-weight: 600;">Wynik</span>
+                    <div class="transcription-meta">
+                        <span id="detectedLang">Jezyk: --</span>
+                        <span id="audioDuration">Czas: --</span>
+                    </div>
+                </div>
+                
+                <div class="tabs" id="resultTabs">
+                    <button class="tab-btn active" data-tab="fulltext">Tekst</button>
+                    <button class="tab-btn" data-tab="segments">Segmenty</button>
+                </div>
+
+                <div id="tab-fulltext" class="tab-content active">
+                    <div class="transcription-box" id="transcriptionText"></div>
+                </div>
+
+                <div id="tab-segments" class="tab-content">
+                    <div class="transcription-box" id="transcriptionSegments"></div>
+                </div>
+
+                <div class="actions-row">
+                    <button class="btn btn-secondary" id="copyTextBtn">Kopiuj tekst</button>
+                    <button class="btn btn-secondary" id="copyTimedBtn">Kopiuj z czasami</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Podsumowanie AI -->
+        <div class="card">
+            <h2 class="card-title">Podsumowanie (Ollama)</h2>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Typ podsumowania</label>
+                    <select id="summaryTypeSelect">
+                        <option value="short">Krotkie (2-3 zdania)</option>
+                        <option value="detailed">Szczegolowe</option>
+                        <option value="bullets">Punkty kluczowe</option>
+                        <option value="action">Zadania do wykonania</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" id="summarizeBtn" style="width: 100%; margin-top: 10px;">
+                Podsumuj transkrypcje
+            </button>
+
+            <div id="summarizeStatus"></div>
+
+            <div id="summaryResult" style="display: none; margin-top: 20px;">
+                <div class="transcription-header">
+                    <span style="font-weight: 600;">Podsumowanie</span>
+                    <div class="transcription-meta">
+                        <span id="summaryModel">Model: --</span>
+                    </div>
+                </div>
+                
+                <div class="transcription-box" id="summaryText"></div>
+
+                <div class="actions-row">
+                    <button class="btn btn-secondary" id="copySummaryBtn">Kopiuj podsumowanie</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Konwersja -->
+        <div class="card">
+            <h2 class="card-title">Eksport</h2>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Format</label>
+                    <select id="formatSelect">
+                        <option value="mp3">MP3</option>
+                        <option value="wav">WAV</option>
+                        <option value="flac">FLAC</option>
+                        <option value="ogg">OGG</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-success btn-lg" id="convertBtn" style="width: 100%; margin-top: 10px;">
+                Pobierz
+            </button>
+
+            <div id="convertStatus"></div>
+        </div>
+    </main>
+<!--
+    <footer class="footer">
+        <p> </p>
+    </footer>
+-->
+    <script>
+        // ============================================
+        // STAN APLIKACJI
+        // ============================================
+        const state = {
+            mediaRecorder: null,
+            audioChunks: [],
+            currentAudioBlob: null,
+            currentBlobUrl: null,
+            isRecording: false,
+            isPaused: false,
+            timerInterval: null,
+            recordingSeconds: 0,
+            audioStream: null
+        };
+
+        // Elementy DOM
+        const elements = {
+            recordBtn: document.getElementById('recordBtn'),
+            pauseBtn: document.getElementById('pauseBtn'),
+            stopBtn: document.getElementById('stopBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            timer: document.getElementById('timer'),
+            audioPlayer: document.getElementById('audioPlayer'),
+            playerWrapper: document.getElementById('playerWrapper'),
+            playerStatus: document.getElementById('playerStatus'),
+            dropZone: document.getElementById('dropZone'),
+            fileInput: document.getElementById('fileInput'),
+            transcribeBtn: document.getElementById('transcribeBtn'),
+            convertBtn: document.getElementById('convertBtn'),
+            languageSelect: document.getElementById('languageSelect'),
+            formatSelect: document.getElementById('formatSelect'),
+            transcriptionText: document.getElementById('transcriptionText'),
+            transcriptionSegments: document.getElementById('transcriptionSegments'),
+            transcriptionResult: document.getElementById('transcriptionResult'),
+            debugInfo: document.getElementById('debugInfo'),
+            // Podsumowanie
+            summarizeBtn: document.getElementById('summarizeBtn'),
+            summaryTypeSelect: document.getElementById('summaryTypeSelect'),
+            summaryResult: document.getElementById('summaryResult'),
+            summaryText: document.getElementById('summaryText'),
+            summaryModel: document.getElementById('summaryModel')
+        };
+
+        // ============================================
+        // DEBUG
+        // ============================================
+        function updateDebug() {
+            const info = [
+                `Stan: ${state.currentAudioBlob ? 'audio gotowe' : 'brak audio'}`,
+                `Blob: ${state.currentAudioBlob ? (state.currentAudioBlob.size / 1024).toFixed(1) + ' KB' : '-'}`,
+                `URL: ${state.currentBlobUrl ? 'tak' : '-'}`,
+                `Nagrywanie: ${state.isRecording ? 'tak' : 'nie'}`
+            ];
+            elements.debugInfo.textContent = info.join(' | ');
+        }
+
+        function log(msg) {
+            console.log(`[AudioApp] ${msg}`);
+        }
+
+        // ============================================
+        // TABS
+        // ============================================
+        document.querySelectorAll('.tabs').forEach(tabGroup => {
+            tabGroup.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.dataset.tab;
+                    const parent = tabGroup.parentElement;
+                    
+                    tabGroup.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    parent.querySelectorAll(':scope > .tab-content').forEach(c => c.classList.remove('active'));
+                    const target = parent.querySelector(`#tab-${tabId}`);
+                    if (target) target.classList.add('active');
+                });
+            });
+        });
+
+        // ============================================
+        // POMOCNICZE
+        // ============================================
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function showStatus(elementId, message, type = 'info') {
+            document.getElementById(elementId).innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function clearStatus(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+
+        // ============================================
+        // ZARZADZANIE AUDIO
+        // ============================================
+        function clearAudio() {
+            log('Czyszcze audio...');
+            
+            // Zwolnij stary blob URL
+            if (state.currentBlobUrl) {
+                URL.revokeObjectURL(state.currentBlobUrl);
+                state.currentBlobUrl = null;
+            }
+            
+            // Wyczysc blob
+            state.currentAudioBlob = null;
+            
+            // Wyczysc player
+            elements.audioPlayer.src = '';
+            elements.audioPlayer.load();
+            elements.playerWrapper.style.display = 'none';
+            elements.playerStatus.textContent = '';
+            
+            // Reset stanu nagrywania
+            state.audioChunks = [];
+            state.recordingSeconds = 0;
+            elements.timer.textContent = '00:00';
+            
+            // Ukryj wyniki transkrypcji
+            elements.transcriptionResult.style.display = 'none';
+            elements.transcriptionText.textContent = '';
+            elements.transcriptionSegments.innerHTML = '';
+            
+            clearStatus('recordStatus');
+            clearStatus('uploadStatus');
+            clearStatus('transcribeStatus');
+            clearStatus('convertStatus');
+            
+            updateDebug();
+            log('Audio wyczyszczone');
+        }
+
+        async function setAudioSource(blob, filename = 'audio') {
+            log(`Ustawiam zrodlo audio: ${filename}, ${blob.size} bytes, ${blob.type}`);
+            
+            // Najpierw wyczysc stare
+            if (state.currentBlobUrl) {
+                URL.revokeObjectURL(state.currentBlobUrl);
+            }
+            
+            state.currentAudioBlob = blob;
+            elements.playerStatus.textContent = 'Ladowanie...';
+            
+            try {
+                // LibreWolf/Firefox moze miec problem z WebM
+                // Konwertuj przez backend do MP3
+                if (blob.type.includes('webm') || blob.type.includes('ogg')) {
+                    log('Konwertuje do MP3 dla kompatybilnosci...');
+                    
+                    const formData = new FormData();
+                    formData.append('audio', blob, 'audio.webm');
+                    
+                    const response = await fetch('/convert-for-playback', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const mp3Blob = await response.blob();
+                        log(`Skonwertowano do MP3: ${mp3Blob.size} bytes`);
+                        state.currentBlobUrl = URL.createObjectURL(mp3Blob);
+                    } else {
+                        throw new Error('Blad konwersji');
+                    }
+                } else {
+                    state.currentBlobUrl = URL.createObjectURL(blob);
+                }
+                
+                elements.audioPlayer.src = state.currentBlobUrl;
+                elements.playerWrapper.style.display = 'block';
+                elements.playerStatus.textContent = filename;
+                
+                // Zaladuj audio
+                elements.audioPlayer.load();
+                
+                log('Audio ustawione poprawnie');
+                
+            } catch (e) {
+                log(`Blad ustawiania audio: ${e}`);
+                // Fallback - sprobuj bez konwersji
+                state.currentBlobUrl = URL.createObjectURL(blob);
+                elements.audioPlayer.src = state.currentBlobUrl;
+                elements.playerWrapper.style.display = 'block';
+                elements.playerStatus.textContent = `${filename} (moze nie dzialac)`;
+            }
+            
+            updateDebug();
+        }
+
+        // ============================================
+        // NAGRYWANIE
+        // ============================================
+        elements.recordBtn.addEventListener('click', async () => {
+            if (state.isRecording) {
+                log('Juz nagrywam - ignoruje');
+                return;
+            }
+            
+            log('Rozpoczynam nagrywanie...');
+            
+            // Wyczysc poprzednie
+            clearAudio();
+            
+            try {
+                // Sprawdz czy API dostepne
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('API getUserMedia niedostepne. Sprawdz ustawienia przegladarki.');
+                }
+                
+                state.audioStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    } 
+                });
+                
+                log('Dostep do mikrofonu OK');
+                
+                // Wybierz codec
+                let mimeType = 'audio/webm';
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    mimeType = 'audio/webm;codecs=opus';
+                }
+                log(`MimeType: ${mimeType}`);
+                
+                state.mediaRecorder = new MediaRecorder(state.audioStream, { mimeType });
+                state.audioChunks = [];
+
+                state.mediaRecorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) {
+                        state.audioChunks.push(e.data);
+                        log(`Chunk: ${e.data.size} bytes`);
+                    }
+                };
+
+                state.mediaRecorder.onstop = async () => {
+                    log('Nagrywanie zatrzymane');
+                    
+                    if (state.audioChunks.length === 0) {
+                        log('Brak danych audio!');
+                        showStatus('recordStatus', 'Brak danych audio', 'error');
+                        return;
+                    }
+                    
+                    const blob = new Blob(state.audioChunks, { type: mimeType });
+                    log(`Utworzono blob: ${blob.size} bytes`);
+                    
+                    await setAudioSource(blob, 'Nagranie');
+                    showStatus('recordStatus', 'Nagranie gotowe', 'success');
+                    
+                    // Zatrzymaj stream
+                    if (state.audioStream) {
+                        state.audioStream.getTracks().forEach(track => {
+                            track.stop();
+                            log(`Track ${track.kind} zatrzymany`);
+                        });
+                        state.audioStream = null;
+                    }
+                };
+
+                state.mediaRecorder.onerror = (e) => {
+                    log(`Blad MediaRecorder: ${e.error}`);
+                    showStatus('recordStatus', `Blad: ${e.error}`, 'error');
+                };
+
+                // Start - zbieraj dane co 500ms
+                state.mediaRecorder.start(500);
+                state.isRecording = true;
+                state.isPaused = false;
+
+                elements.recordBtn.classList.add('recording');
+                elements.pauseBtn.disabled = false;
+                elements.stopBtn.disabled = false;
+
+                state.timerInterval = setInterval(() => {
+                    if (!state.isPaused) {
+                        state.recordingSeconds++;
+                        elements.timer.textContent = formatTime(state.recordingSeconds);
+                    }
+                }, 1000);
+
+                showStatus('recordStatus', 'Nagrywanie...', 'info');
+                updateDebug();
+
+            } catch (err) {
+                log(`Blad nagrywania: ${err}`);
+                let errorMsg = err.message;
+                
+                if (err.name === 'NotAllowedError') {
+                    errorMsg = 'Brak dostepu do mikrofonu. Sprawdz uprawnienia przegladarki.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMsg = 'Nie znaleziono mikrofonu.';
+                }
+                
+                showStatus('recordStatus', errorMsg, 'error');
+            }
+        });
+
+        elements.pauseBtn.addEventListener('click', () => {
+            if (!state.mediaRecorder || !state.isRecording) return;
+            
+            if (state.isPaused) {
+                state.mediaRecorder.resume();
+                state.isPaused = false;
+                elements.pauseBtn.innerHTML = '&#10074;&#10074;';
+                elements.recordBtn.classList.add('recording');
+                showStatus('recordStatus', 'Nagrywanie...', 'info');
+            } else {
+                state.mediaRecorder.pause();
+                state.isPaused = true;
+                elements.pauseBtn.innerHTML = '&#9658;';
+                elements.recordBtn.classList.remove('recording');
+                showStatus('recordStatus', 'Pauza', 'warning');
+            }
+        });
+
+        elements.stopBtn.addEventListener('click', () => {
+            if (!state.mediaRecorder || !state.isRecording) return;
+            
+            log('Zatrzymuje nagrywanie...');
+            
+            state.mediaRecorder.stop();
+            state.isRecording = false;
+            state.isPaused = false;
+            
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+
+            elements.recordBtn.classList.remove('recording');
+            elements.pauseBtn.disabled = true;
+            elements.pauseBtn.innerHTML = '&#10074;&#10074;';
+            elements.stopBtn.disabled = true;
+            
+            updateDebug();
+        });
+
+        elements.clearBtn.addEventListener('click', () => {
+            // Jesli nagrywanie - zatrzymaj
+            if (state.isRecording && state.mediaRecorder) {
+                state.mediaRecorder.stop();
+                state.isRecording = false;
+                if (state.timerInterval) {
+                    clearInterval(state.timerInterval);
+                }
+                elements.recordBtn.classList.remove('recording');
+                elements.pauseBtn.disabled = true;
+                elements.stopBtn.disabled = true;
+            }
+            
+            clearAudio();
+        });
+
+        // ============================================
+        // UPLOAD
+        // ============================================
+        elements.dropZone.addEventListener('click', () => elements.fileInput.click());
+
+        elements.dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            elements.dropZone.classList.add('dragover');
+        });
+
+        elements.dropZone.addEventListener('dragleave', () => {
+            elements.dropZone.classList.remove('dragover');
+        });
+
+        elements.dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            elements.dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFileUpload(file);
+        });
+
+        elements.fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                handleFileUpload(e.target.files[0]);
+                e.target.value = ''; // Reset input
+            }
+        });
+
+        async function handleFileUpload(file) {
+            log(`Upload: ${file.name}, ${file.size} bytes, ${file.type}`);
+            
+            if (!file.type.startsWith('audio/')) {
+                showStatus('uploadStatus', 'To nie jest plik audio', 'error');
+                return;
+            }
+            
+            clearAudio();
+            await setAudioSource(file, file.name);
+            showStatus('uploadStatus', `Wczytano: ${file.name}`, 'success');
+        }
+
+        // ============================================
+        // TRANSKRYPCJA
+        // ============================================
+        elements.transcribeBtn.addEventListener('click', async () => {
+            if (!state.currentAudioBlob) {
+                showStatus('transcribeStatus', 'Najpierw nagraj lub wczytaj audio', 'error');
+                return;
+            }
+
+            log('Rozpoczynam transkrypcje...');
+            
+            elements.transcribeBtn.disabled = true;
+            elements.transcribeBtn.innerHTML = '<span class="spinner"></span> Transkrybuje...';
+            showStatus('transcribeStatus', 'Trwa transkrypcja...', 'info');
+            elements.transcriptionResult.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('audio', state.currentAudioBlob, 'audio.webm');
+            formData.append('language', elements.languageSelect.value);
+
+            try {
+                const response = await fetch('/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                log(`Odpowiedz: success=${data.success}`);
+
+                if (data.success) {
+                    elements.transcriptionText.textContent = data.text || '(brak tekstu)';
+
+                    if (data.segments && data.segments.length > 0) {
+                        elements.transcriptionSegments.innerHTML = data.segments.map(seg => `
+                            <div class="segment">
+                                <span class="segment-time">${formatTime(seg.start)}</span>
+                                <span class="segment-text">${seg.text}</span>
+                            </div>
+                        `).join('');
+                    } else {
+                        elements.transcriptionSegments.innerHTML = '<div style="color: var(--text-muted);">Brak segmentow</div>';
+                    }
+
+                    document.getElementById('detectedLang').textContent = `Jezyk: ${(data.language || '?').toUpperCase()}`;
+                    document.getElementById('audioDuration').textContent = `Czas: ${formatTime(data.duration || 0)}`;
+
+                    elements.transcriptionResult.style.display = 'block';
+                    showStatus('transcribeStatus', 'Transkrypcja gotowa', 'success');
+                } else {
+                    showStatus('transcribeStatus', 'Blad: ' + (data.error || 'nieznany'), 'error');
+                }
+
+            } catch (error) {
+                log(`Blad transkrypcji: ${error}`);
+                showStatus('transcribeStatus', 'Blad polaczenia: ' + error.message, 'error');
+            } finally {
+                elements.transcribeBtn.disabled = false;
+                elements.transcribeBtn.innerHTML = 'Transkrybuj';
+            }
+        });
+
+        // Kopiowanie
+        document.getElementById('copyTextBtn').addEventListener('click', async () => {
+            const text = elements.transcriptionText.textContent;
+            if (text && text !== '(brak tekstu)') {
+                await navigator.clipboard.writeText(text);
+                const btn = document.getElementById('copyTextBtn');
+                btn.textContent = 'Skopiowano!';
+                setTimeout(() => btn.textContent = 'Kopiuj tekst', 2000);
+            }
+        });
+
+        document.getElementById('copyTimedBtn').addEventListener('click', async () => {
+            const segments = elements.transcriptionSegments.querySelectorAll('.segment');
+            if (segments.length > 0) {
+                const text = Array.from(segments).map(seg => {
+                    const time = seg.querySelector('.segment-time').textContent;
+                    const txt = seg.querySelector('.segment-text').textContent;
+                    return `[${time}] ${txt}`;
+                }).join('\n');
+                
+                await navigator.clipboard.writeText(text);
+                const btn = document.getElementById('copyTimedBtn');
+                btn.textContent = 'Skopiowano!';
+                setTimeout(() => btn.textContent = 'Kopiuj z czasami', 2000);
+            }
+        });
+
+        // ============================================
+        // PODSUMOWANIE (OLLAMA)
+        // ============================================
+        elements.summarizeBtn.addEventListener('click', async () => {
+            const transcriptionText = elements.transcriptionText.textContent;
+            
+            if (!transcriptionText || transcriptionText === '(brak tekstu)' || transcriptionText.trim() === '') {
+                showStatus('summarizeStatus', 'Najpierw wykonaj transkrypcje', 'error');
+                return;
+            }
+
+            log('Rozpoczynam podsumowanie...');
+            
+            elements.summarizeBtn.disabled = true;
+            elements.summarizeBtn.innerHTML = '<span class="spinner"></span> Podsumowuje...';
+            showStatus('summarizeStatus', 'Trwa podsumowanie (moze potrwac chwile)...', 'info');
+            elements.summaryResult.style.display = 'none';
+
+            try {
+                const response = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: transcriptionText,
+                        type: elements.summaryTypeSelect.value,
+                        language: elements.languageSelect.value
+                    })
+                });
+
+                const data = await response.json();
+                log(`Odpowiedz podsumowania: success=${data.success}`);
+
+                if (data.success) {
+                    elements.summaryText.textContent = data.summary || '(brak podsumowania)';
+                    elements.summaryModel.textContent = `Model: ${data.model || '?'}`;
+                    elements.summaryResult.style.display = 'block';
+                    showStatus('summarizeStatus', 'Podsumowanie gotowe', 'success');
+                } else {
+                    showStatus('summarizeStatus', 'Blad: ' + (data.error || 'nieznany'), 'error');
+                }
+
+            } catch (error) {
+                log(`Blad podsumowania: ${error}`);
+                showStatus('summarizeStatus', 'Blad polaczenia: ' + error.message, 'error');
+            } finally {
+                elements.summarizeBtn.disabled = false;
+                elements.summarizeBtn.innerHTML = 'Podsumuj transkrypcje';
+            }
+        });
+
+        // Kopiowanie podsumowania
+        document.getElementById('copySummaryBtn').addEventListener('click', async () => {
+            const text = elements.summaryText.textContent;
+            if (text && text !== '(brak podsumowania)') {
+                await navigator.clipboard.writeText(text);
+                const btn = document.getElementById('copySummaryBtn');
+                btn.textContent = 'Skopiowano!';
+                setTimeout(() => btn.textContent = 'Kopiuj podsumowanie', 2000);
+            }
+        });
+
+        // ============================================
+        // KONWERSJA
+        // ============================================
+        elements.convertBtn.addEventListener('click', async () => {
+            if (!state.currentAudioBlob) {
+                showStatus('convertStatus', 'Najpierw nagraj lub wczytaj audio', 'error');
+                return;
+            }
+
+            log('Konwersja...');
+            
+            elements.convertBtn.disabled = true;
+            elements.convertBtn.innerHTML = '<span class="spinner"></span> Konwertuje...';
+            showStatus('convertStatus', 'Trwa konwersja...', 'info');
+
+            const formData = new FormData();
+            formData.append('audio', state.currentAudioBlob, 'audio.webm');
+            formData.append('format', elements.formatSelect.value);
+
+            try {
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `audio.${elements.formatSelect.value}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    showStatus('convertStatus', 'Plik pobrany', 'success');
+                } else {
+                    const data = await response.json();
+                    showStatus('convertStatus', 'Blad: ' + (data.error || 'nieznany'), 'error');
+                }
+
+            } catch (error) {
+                log(`Blad konwersji: ${error}`);
+                showStatus('convertStatus', 'Blad: ' + error.message, 'error');
+            } finally {
+                elements.convertBtn.disabled = false;
+                elements.convertBtn.innerHTML = 'Pobierz';
+            }
+        });
+
+        // ============================================
+        // OBSLUGA BLEDOW AUDIO
+        // ============================================
+        elements.audioPlayer.addEventListener('error', (e) => {
+            log(`Blad audio: ${elements.audioPlayer.error?.message || 'nieznany'}`);
+            elements.playerStatus.textContent = 'Blad odtwarzania';
+        });
+
+        elements.audioPlayer.addEventListener('loadeddata', () => {
+            log('Audio zaladowane');
+        });
+
+        // Init
+        updateDebug();
+        log('Aplikacja zainicjalizowana');
+    </script>
+</body>
+</html>
