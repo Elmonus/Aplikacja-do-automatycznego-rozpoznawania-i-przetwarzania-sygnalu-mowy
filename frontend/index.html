@@ -579,9 +579,7 @@
     </footer>
 -->
     <script>
-        // ============================================
-        // STAN APLIKACJI
-        // ============================================
+        // Stan
         const state = {
             mediaRecorder: null,
             audioChunks: [],
@@ -622,9 +620,8 @@
             summaryModel: document.getElementById('summaryModel')
         };
 
-        // ============================================
-        // DEBUG
-        // ============================================
+
+        // Debug
         function updateDebug() {
             const info = [
                 `Stan: ${state.currentAudioBlob ? 'audio gotowe' : 'brak audio'}`,
@@ -639,9 +636,8 @@
             console.log(`[AudioApp] ${msg}`);
         }
 
-        // ============================================
-        // TABS
-        // ============================================
+
+        // Taby
         document.querySelectorAll('.tabs').forEach(tabGroup => {
             tabGroup.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -658,9 +654,8 @@
             });
         });
 
-        // ============================================
-        // POMOCNICZE
-        // ============================================
+
+        // pomocnicze
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
@@ -675,9 +670,8 @@
             document.getElementById(elementId).innerHTML = '';
         }
 
-        // ============================================
-        // ZARZADZANIE AUDIO
-        // ============================================
+
+        // audio
         function clearAudio() {
             log('Czyszcze audio...');
             
@@ -727,7 +721,7 @@
             elements.playerStatus.textContent = 'Ladowanie...';
             
             try {
-                // LibreWolf/Firefox moze miec problem z WebM
+                // Firefox moze miec problem z WebM
                 // Konwertuj przez backend do MP3
                 if (blob.type.includes('webm') || blob.type.includes('ogg')) {
                     log('Konwertuje do MP3 dla kompatybilnosci...');
@@ -772,9 +766,7 @@
             updateDebug();
         }
 
-        // ============================================
-        // NAGRYWANIE
-        // ============================================
+        // Nagrywanie
         elements.recordBtn.addEventListener('click', async () => {
             if (state.isRecording) {
                 log('Juz nagrywam - ignoruje');
@@ -937,9 +929,8 @@
             clearAudio();
         });
 
-        // ============================================
-        // UPLOAD
-        // ============================================
+
+        // upload
         elements.dropZone.addEventListener('click', () => elements.fileInput.click());
 
         elements.dropZone.addEventListener('dragover', (e) => {
@@ -978,9 +969,8 @@
             showStatus('uploadStatus', `Wczytano: ${file.name}`, 'success');
         }
 
-        // ============================================
-        // TRANSKRYPCJA
-        // ============================================
+
+        // transkrpycja
         elements.transcribeBtn.addEventListener('click', async () => {
             if (!state.currentAudioBlob) {
                 showStatus('transcribeStatus', 'Najpierw nagraj lub wczytaj audio', 'error');
@@ -1066,9 +1056,8 @@
             }
         });
 
-        // ============================================
-        // PODSUMOWANIE (OLLAMA)
-        // ============================================
+
+        // Podsumowanie
         elements.summarizeBtn.addEventListener('click', async () => {
             const transcriptionText = elements.transcriptionText.textContent;
             
@@ -1129,9 +1118,8 @@
             }
         });
 
-        // ============================================
-        // KONWERSJA
-        // ============================================
+
+        // konwert
         elements.convertBtn.addEventListener('click', async () => {
             if (!state.currentAudioBlob) {
                 showStatus('convertStatus', 'Najpierw nagraj lub wczytaj audio', 'error');
@@ -1180,9 +1168,8 @@
             }
         });
 
-        // ============================================
-        // OBSLUGA BLEDOW AUDIO
-        // ============================================
+
+        // Bledy
         elements.audioPlayer.addEventListener('error', (e) => {
             log(`Blad audio: ${elements.audioPlayer.error?.message || 'nieznany'}`);
             elements.playerStatus.textContent = 'Blad odtwarzania';

@@ -6,9 +6,8 @@ const http = require('http');
 const { spawn } = require('child_process');
 const treeKill = require('tree-kill');
 
-// ============================================================
-// KONFIGURACJA
-// ============================================================
+
+// Konfiguracja
 const PORT = 5123;
 const HOST = '127.0.0.1';
 const BACKEND_URL = `http://${HOST}:${PORT}`;
@@ -20,10 +19,9 @@ let backendReady = false;
 
 const isDev = !app.isPackaged;
 
-// ============================================================
-// WYBOR INTERPRETERA PYTHONA
+
+
 // Priorytet: venv w backend/ -> python3 -> python
-// ============================================================
 function resolvePythonCommand() {
   const isWin = process.platform === 'win32';
   const venvPython = isWin
@@ -38,9 +36,8 @@ function resolvePythonCommand() {
   return isWin ? 'python' : 'python3';
 }
 
-// ============================================================
-// URUCHOMIENIE BACKENDU FLASK
-// ============================================================
+
+// Backend w flask
 function startBackend() {
   const python = resolvePythonCommand();
   console.log(`[main] Uruchamiam backend: ${python} app.py (cwd=${BACKEND_DIR})`);
@@ -58,15 +55,14 @@ function startBackend() {
     process.stdout.write(`[flask] ${data}`);
   });
   backendProcess.stderr.on('data', (data) => {
-    // Flask i logging pisza na stderr - to normalne, nie traktujemy jako blad
+
     process.stderr.write(`[flask] ${data}`);
   });
   backendProcess.on('error', (err) => {
     console.error('[main] Nie udalo sie uruchomic Pythona:', err);
     dialog.showErrorBox(
       'Brak Pythona',
-      'Nie udalo sie uruchomic backendu. Upewnij sie, ze Python 3.9+ jest zainstalowany ' +
-      'oraz ze uruchomiono instalator (setup.sh / setup.bat).'
+      'Nie udalo sie uruchomic backendu'
     );
   });
   backendProcess.on('exit', (code, signal) => {
@@ -75,9 +71,8 @@ function startBackend() {
   });
 }
 
-// ============================================================
-// CZEKANIE NA GOTOWOSC BACKENDU (poll /health)
-// ============================================================
+
+// Sprawdzanie backendu
 function pingHealth() {
   return new Promise((resolve) => {
     const req = http.get(`${BACKEND_URL}/health`, (res) => {
@@ -105,9 +100,8 @@ async function waitForBackend(timeoutMs = 60000, intervalMs = 500) {
   return false;
 }
 
-// ============================================================
-// OKNO APLIKACJI
-// ============================================================
+
+// Okno aplikacji
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1100,
@@ -125,11 +119,11 @@ function createWindow() {
     },
   });
 
-  // Ekran ladowania, zanim backend wstanie
+  // Ladowanie
   mainWindow.loadFile(path.join(__dirname, 'frontend', 'loading.html'));
   mainWindow.once('ready-to-show', () => mainWindow.show());
 
-  // Linki zewnetrzne otwieraj w przegladarce systemowej
+  // Linki
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };
@@ -150,10 +144,8 @@ function loadApp() {
   }
 }
 
-// ============================================================
-// ZEZWOLENIE NA MIKROFON
-// (localhost jest secure context, ale Electron i tak pyta o zgode)
-// ============================================================
+
+// Mikrofon
 function configureMediaPermissions() {
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
     const allowed = ['media', 'audioCapture', 'microphone'];
@@ -164,9 +156,8 @@ function configureMediaPermissions() {
   });
 }
 
-// ============================================================
-// CYKL ZYCIA APLIKACJI
-// ============================================================
+
+// Cykl
 app.whenReady().then(async () => {
   configureMediaPermissions();
   createWindow();
@@ -180,7 +171,7 @@ app.whenReady().then(async () => {
     dialog.showErrorBox(
       'Backend nie odpowiada',
       'Serwer Flask nie wystartowal w wyznaczonym czasie. ' +
-      'Sprawdz, czy zaleznosci Pythona sa zainstalowane (setup.sh / setup.bat) ' +
+      'Sprawdz, czy zaleznosci Pythona sa zainstalowane ' +
       'oraz czy FFmpeg jest dostepny w systemie.'
     );
   }
@@ -193,9 +184,8 @@ app.whenReady().then(async () => {
   });
 });
 
-// ============================================================
-// ZAMYKANIE - zatrzymanie backendu
-// ============================================================
+
+// Zamykanie
 function shutdownBackend() {
   if (backendProcess && backendProcess.pid) {
     console.log('[main] Zatrzymuje backend...');
