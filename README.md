@@ -149,7 +149,7 @@ npm start
 
 ---
 
-## 4. Weryfikacja (na każdym systemie)
+## 4. Weryfikacja 
 ```bash
 node -v
 npm -v
