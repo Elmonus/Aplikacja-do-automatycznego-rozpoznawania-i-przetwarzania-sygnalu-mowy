@@ -63,7 +63,7 @@ npm start
 
 **Debian / Ubuntu:**
 ```bash
-# Node.js LTS (repozytorium NodeSource)
+# Node.js LTS 
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
@@ -80,7 +80,7 @@ sudo apt-get install -y libfuse2
 **Fedora:**
 ```bash
 sudo dnf install -y nodejs python3 python3-pip
-sudo dnf install -y ffmpeg          # wymaga repo RPM Fusion
+sudo dnf install -y ffmpeg          
 ```
 
 **Arch:**
@@ -90,7 +90,7 @@ sudo pacman -S --needed nodejs npm python python-pip ffmpeg
 
 ### 2.2. Ollama — serwer + model
 ```bash
-curl -fsSL https://ollama.com/install.sh | sh   # tworzy usługę systemd i ją uruchamia
+curl -fsSL https://ollama.com/install.sh | sh    
 ollama pull mistral:7b                           # lub: ollama pull llama3.2:3b
 ```
 
@@ -125,7 +125,7 @@ npm start
 - Ollama — https://ollama.com/download/windows
 
 ### 3.2. Ollama — model
-Ollama startuje jako usługa po instalacji. Pobierz model:
+Ollama startuje jako usługa po instalacji. Pobrać model:
 ```powershell
 ollama pull mistral:7b
 ```
@@ -155,11 +155,10 @@ node -v
 npm -v
 python3 --version      # Windows: python --version
 ffmpeg -version
-ffprobe -version
 ollama --version
 ```
 Serwer Ollama powinien odpowiadać pod `http://localhost:11434`.
-Model Whisper (`base`, ~74 MB) pobierze się sam przy pierwszej transkrypcji (raz, potrzebny internet).
+Model Whisper powinien pobrać się sam przy pierwszej transkrypcji.
 
----
+
 
